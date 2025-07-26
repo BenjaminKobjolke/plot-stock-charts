@@ -18,6 +18,7 @@ from datetime import datetime
 from src.data.csv_reader import CSVReader
 from src.exchange.calendar import ExchangeCalendar
 from src.chart.plotter import StockChartPlotter
+from src.output.json_exporter import JSONExporter
 from src.utils.date_utils import format_date_for_display, DateTimeHelper
 
 
@@ -61,8 +62,13 @@ def parse_arguments() -> argparse.Namespace:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
+  # Display interactive chart
   python main.py --input data.csv --exchange XETR
-  python main.py --input stock_data.csv --exchange NYSE
+  python main.py --input stock_data.csv --exchange NYSE --days 3
+  
+  # Export to JSON instead of displaying chart
+  python main.py --input data.csv --exchange XETR --output chart.json
+  python main.py --input data.csv --exchange XETR --days 3 --output chart.json
   
 Supported exchanges include: XETR (Xetra), NYSE, NASDAQ, LSE, etc.
 Use exchange_calendars library documentation for full list.
@@ -92,6 +98,11 @@ Use exchange_calendars library documentation for full list.
         '--config',
         default='settings.ini',
         help='Path to configuration file (default: settings.ini)'
+    )
+    
+    parser.add_argument(
+        '--output',
+        help='Output JSON file path (if specified, chart will not be displayed)'
     )
     
     parser.add_argument(
@@ -133,6 +144,13 @@ def validate_inputs(args: argparse.Namespace) -> None:
         logger.error(f"Invalid exchange code '{args.exchange}': {e}")
         logger.info("Use exchange_calendars library documentation for supported exchanges")
         sys.exit(1)
+    
+    # Validate output path if provided
+    if args.output:
+        json_exporter = JSONExporter(args.config)
+        if not json_exporter.validate_output_path(args.output):
+            logger.error(f"Invalid output path: {args.output}")
+            sys.exit(1)
 
 
 def main() -> None:
@@ -276,19 +294,46 @@ def main() -> None:
             logger.error("No data available during trading hours")
             sys.exit(1)
         
-        # Create and display chart
-        logger.info("Creating chart...")
-        chart_plotter.plot_candlestick_chart(
-            dataset=filtered_data,
-            title="Stock Price Chart",
-            exchange_code=args.exchange,
-            date_str=format_date_for_display(latest_date)
-        )
-        
-        logger.info("Displaying chart... (Close the chart window to exit)")
-        chart_plotter.show_chart(block=True)
-        
-        logger.info("Chart closed. Application finished successfully.")
+        # Check if JSON output is requested
+        if args.output:
+            # Export to JSON instead of displaying chart
+            logger.info(f"Exporting data to JSON file: {args.output}")
+            
+            # Initialize JSON exporter
+            json_exporter = JSONExporter(args.config)
+            
+            # Prepare additional metadata
+            metadata = {
+                "input_file": args.input,
+                "latest_date": format_date_for_display(latest_date),
+                "filtered_to_trading_hours": True
+            }
+            
+            # Export to JSON
+            json_exporter.export_to_json(
+                dataset=filtered_data,
+                output_path=args.output,
+                exchange_code=args.exchange,
+                days=args.days,
+                metadata=metadata
+            )
+            
+            logger.info("JSON export completed successfully.")
+            
+        else:
+            # Create and display chart (original behavior)
+            logger.info("Creating chart...")
+            chart_plotter.plot_candlestick_chart(
+                dataset=filtered_data,
+                title="Stock Price Chart",
+                exchange_code=args.exchange,
+                date_str=format_date_for_display(latest_date)
+            )
+            
+            logger.info("Displaying chart... (Close the chart window to exit)")
+            chart_plotter.show_chart(block=True)
+            
+            logger.info("Chart closed. Application finished successfully.")
         
     except KeyboardInterrupt:
         logger.info("Application interrupted by user")

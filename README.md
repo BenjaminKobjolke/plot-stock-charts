@@ -9,9 +9,10 @@ https://www.dukascopy.com/trading-tools/widgets/quotes/historical_data_feed
 ## Features
 
 - Load OHLCV (Open, High, Low, Close, Volume) data from CSV files
-- Filter data to show only the latest trading day
+- Filter data to show only the latest trading day or multiple trading days
 - Apply exchange-specific trading hours filtering using official exchange calendars
 - Display interactive candlestick charts using lightweight-charts-python
+- **Export filtered data to JSON format for external use**
 - Support for multiple stock exchanges worldwide
 - Configurable chart appearance and logging
 - Modular, well-documented codebase
@@ -50,6 +51,8 @@ run.bat input.csv XETR
 
 - `--input`: Path to the input CSV file containing OHLCV data (required)
 - `--exchange`: Exchange code (e.g., XETR for Xetra, NYSE for New York Stock Exchange) (required)
+- `--days`: Number of latest trading days to display (optional, default: 1)
+- `--output`: Output JSON file path (optional, if specified, chart will not be displayed)
 - `--config`: Path to configuration file (optional, default: settings.ini)
 - `--verbose`, `-v`: Enable verbose logging (optional)
 
@@ -134,6 +137,9 @@ plot-stock-charts/
 │   ├── chart/
 │   │   ├── __init__.py
 │   │   └── plotter.py          # Chart creation and display
+│   ├── output/
+│   │   ├── __init__.py
+│   │   └── json_exporter.py    # JSON export functionality
 │   ├── utils/
 │   │   ├── __init__.py
 │   │   └── date_utils.py       # Date/time utility functions
@@ -147,16 +153,64 @@ plot-stock-charts/
 
 ## Examples
 
-### Basic Usage
+### Display Interactive Chart
 
 ```bash
+# Single day chart
 python main.py --input stock_data.csv --exchange XETR
+
+# Multi-day chart (3 days)
+python main.py --input stock_data.csv --exchange XETR --days 3
+
+# With verbose logging
+python main.py --input stock_data.csv --exchange NYSE --verbose
 ```
 
-### With Verbose Logging
+### Export to JSON
 
 ```bash
-python main.py --input stock_data.csv --exchange NYSE --verbose
+# Export single day data to JSON
+python main.py --input stock_data.csv --exchange XETR --output chart.json
+
+# Export multi-day data to JSON
+python main.py --input stock_data.csv --exchange XETR --days 3 --output chart.json
+
+# Export with verbose logging
+python main.py --input stock_data.csv --exchange NYSE --days 3 --output data.json --verbose
+```
+
+### JSON Output Format
+
+When using the `--output` parameter, the application generates a structured JSON file:
+
+```json
+{
+  "metadata": {
+    "export_timestamp": "2025-07-26T12:00:00",
+    "exchange_code": "XETR",
+    "days_requested": 3,
+    "data_points_count": 156,
+    "time_range": {
+      "start": "2025-07-24T09:00:00",
+      "end": "2025-07-26T17:30:00"
+    },
+    "data_format": "OHLCV",
+    "timezone_info": "Local time (timezone information removed for cleaner output)",
+    "input_file": "input.csv",
+    "latest_date": "26.07.2025",
+    "filtered_to_trading_hours": true
+  },
+  "data": [
+    {
+      "timestamp": "2025-07-24T09:00:00",
+      "open": 25552.0,
+      "high": 25565.0,
+      "low": 25540.0,
+      "close": 25558.0,
+      "volume": 1250
+    }
+  ]
+}
 ```
 
 ### Using Custom Configuration

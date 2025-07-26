@@ -2,7 +2,7 @@
 
 ## Current Status
 
-The Stock Chart Plotter application is **fully functional** with all core features implemented and working correctly.
+The Stock Chart Plotter application is **fully functional** with all core features implemented and working correctly. **NEW**: JSON output functionality has been added as requested.
 
 ## Recent Achievements
 
@@ -26,6 +26,21 @@ The Stock Chart Plotter application is **fully functional** with all core featur
 - **Solution**: Added `chart.fit()` call after setting data to auto-scale the view
 - **Result**: Chart now automatically fits all data in the visible area on startup
 
+### 4. JSON Output Mode Implementation ✅ **NEW**
+
+- **Requirement**: User requested JSON output mode as alternative to chart display
+- **Implementation**:
+  - Created new `src/output/json_exporter.py` module with `JSONExporter` class
+  - Added `--output` parameter to command line interface
+  - Modified main.py to conditionally export JSON instead of displaying chart
+  - JSON includes comprehensive metadata and structured OHLCV data
+- **Features**:
+  - Structured JSON with metadata section (export timestamp, exchange, data count, time range)
+  - ISO format timestamps for easy parsing
+  - Validation of output path with helpful error messages
+  - Works with both single-day and multi-day modes
+- **Usage**: `python main.py --input input.csv --exchange XETR --days 3 --output chart.json`
+
 ## Current Working Features
 
 ### Core Functionality
@@ -34,6 +49,7 @@ The Stock Chart Plotter application is **fully functional** with all core featur
 - ✅ Exchange calendar integration (XFRA, XETR, etc.)
 - ✅ Trading hours filtering per exchange
 - ✅ Interactive candlestick chart display
+- ✅ **JSON data export with comprehensive metadata** ✅ **NEW**
 - ✅ Timezone conversion (GMT+0200 to local display)
 - ✅ Multi-day data loading and display
 - ✅ Auto-fit chart view
@@ -41,14 +57,14 @@ The Stock Chart Plotter application is **fully functional** with all core featur
 ### Command Line Interface
 
 ```bash
-# Single day (default)
+# Display interactive chart (default behavior)
 python main.py --input input.csv --exchange XFRA
-
-# Multiple days
 python main.py --input input.csv --exchange XFRA --days 3
-
-# With verbose logging
 python main.py --input input.csv --exchange XFRA --days 3 --verbose
+
+# Export to JSON (no chart displayed)
+python main.py --input input.csv --exchange XFRA --output chart.json
+python main.py --input input.csv --exchange XFRA --days 3 --output chart.json
 ```
 
 ## Technical Implementation Details
@@ -67,6 +83,7 @@ python main.py --input input.csv --exchange XFRA --days 3 --verbose
 - `ExchangeCalendar.get_latest_trading_days()`: Find N trading days back
 - `ExchangeCalendar.filter_trading_hours()`: Filter to official hours
 - `StockChartPlotter.plot_candlestick_chart()`: Render with auto-fit
+- `JSONExporter.export_to_json()`: Export filtered data to structured JSON format **NEW**
 
 ## Debug Information Available
 

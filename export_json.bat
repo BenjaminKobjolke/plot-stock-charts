@@ -1,0 +1,1 @@
+python main.py --input input.csv --exchange XETR --days 1 --output chart.json
