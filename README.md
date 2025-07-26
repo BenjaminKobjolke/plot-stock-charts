@@ -1,0 +1,230 @@
+# Stock Chart Plotter
+
+A Python application for plotting interactive stock charts from CSV data with exchange-specific trading hours filtering.
+
+You can download csv files here:
+
+https://www.dukascopy.com/trading-tools/widgets/quotes/historical_data_feed
+
+## Features
+
+- Load OHLCV (Open, High, Low, Close, Volume) data from CSV files
+- Filter data to show only the latest trading day
+- Apply exchange-specific trading hours filtering using official exchange calendars
+- Display interactive candlestick charts using lightweight-charts-python
+- Support for multiple stock exchanges worldwide
+- Configurable chart appearance and logging
+- Modular, well-documented codebase
+
+## Requirements
+
+- Python 3.7+
+- pandas
+- lightweight-charts-python
+- exchange-calendars
+- pytz
+
+## Installation
+
+1. Clone or download this repository
+2. Install the required dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+## Usage
+
+### Command Line
+
+```bash
+python main.py --input your_data.csv --exchange XETR
+```
+
+### Using the Batch File (Windows)
+
+```bash
+run.bat input.csv XETR
+```
+
+### Arguments
+
+- `--input`: Path to the input CSV file containing OHLCV data (required)
+- `--exchange`: Exchange code (e.g., XETR for Xetra, NYSE for New York Stock Exchange) (required)
+- `--config`: Path to configuration file (optional, default: settings.ini)
+- `--verbose`, `-v`: Enable verbose logging (optional)
+
+### Supported Exchange Codes
+
+The application uses the `exchange_calendars` library, which supports many exchanges including:
+
+- **XETR**: Xetra (Germany)
+- **NYSE**: New York Stock Exchange (USA)
+- **NASDAQ**: NASDAQ (USA)
+- **LSE**: London Stock Exchange (UK)
+- **TSE**: Tokyo Stock Exchange (Japan)
+- **HKEX**: Hong Kong Stock Exchange
+- **SSE**: Shanghai Stock Exchange (China)
+- **BSE**: Bombay Stock Exchange (India)
+
+For a complete list, refer to the [exchange_calendars documentation](https://github.com/gerrymanoim/exchange_calendars).
+
+## CSV Data Format
+
+The input CSV file should have the following columns:
+
+```csv
+Local time,Open,High,Low,Close,Volume
+01.07.2025 00:00:00.000 GMT+0200,25552,25552,25552,25552,0
+```
+
+### Required Columns
+
+- **Local time**: Timestamp in format "DD.MM.YYYY HH:MM:SS.fff GMT±HHMM"
+- **Open**: Opening price
+- **High**: Highest price during the period
+- **Low**: Lowest price during the period
+- **Close**: Closing price
+- **Volume**: Trading volume
+
+## Configuration
+
+The application uses a `settings.ini` file for configuration:
+
+```ini
+[DATA]
+date_format = %d.%m.%Y %H:%M:%S.%f GMT%z
+
+[CHART]
+width = 1200
+height = 600
+theme = dark
+
+[LOGGING]
+level = INFO
+format = %(asctime)s - %(name)s - %(levelname)s - %(message)s
+```
+
+### Configuration Sections
+
+- **DATA**: Data parsing settings
+- **CHART**: Chart appearance settings
+- **LOGGING**: Logging configuration
+
+## How It Works
+
+1. **Data Loading**: The application loads the CSV file and parses the datetime format
+2. **Latest Day Extraction**: Identifies and extracts data from the most recent trading day
+3. **Exchange Calendar**: Uses the specified exchange's official calendar to get trading hours
+4. **Time Filtering**: Filters the data to only include timestamps during official trading hours
+5. **Chart Creation**: Creates an interactive candlestick chart using lightweight-charts-python
+6. **Display**: Shows the chart in a web browser window
+
+## Project Structure
+
+```
+plot-stock-charts/
+├── src/
+│   ├── data/
+│   │   ├── __init__.py
+│   │   ├── data_models.py      # Data structures for OHLCV data
+│   │   └── csv_reader.py       # CSV file loading and parsing
+│   ├── exchange/
+│   │   ├── __init__.py
+│   │   └── calendar.py         # Exchange calendar integration
+│   ├── chart/
+│   │   ├── __init__.py
+│   │   └── plotter.py          # Chart creation and display
+│   ├── utils/
+│   │   ├── __init__.py
+│   │   └── date_utils.py       # Date/time utility functions
+│   └── __init__.py
+├── main.py                     # Main application entry point
+├── run.bat                     # Windows batch file for easy execution
+├── requirements.txt            # Python dependencies
+├── settings.ini               # Configuration file
+└── README.md                  # This file
+```
+
+## Examples
+
+### Basic Usage
+
+```bash
+python main.py --input stock_data.csv --exchange XETR
+```
+
+### With Verbose Logging
+
+```bash
+python main.py --input stock_data.csv --exchange NYSE --verbose
+```
+
+### Using Custom Configuration
+
+```bash
+python main.py --input data.csv --exchange LSE --config my_config.ini
+```
+
+## Error Handling
+
+The application includes comprehensive error handling for:
+
+- Missing or invalid CSV files
+- Unsupported exchange codes
+- Invalid date formats
+- Empty datasets
+- Exchange closure days
+- Network issues (for exchange calendar data)
+
+## Logging
+
+The application provides detailed logging information including:
+
+- Data loading progress
+- Exchange calendar information
+- Trading hours filtering results
+- Chart creation status
+- Error messages and warnings
+
+## Troubleshooting
+
+### Common Issues
+
+1. **"Exchange code not supported"**
+
+   - Check the exchange code spelling
+   - Refer to exchange_calendars documentation for valid codes
+
+2. **"No data found during trading hours"**
+
+   - The exchange might be closed on the data date
+   - Check if the date in your CSV is a trading day
+
+3. **"Invalid datetime format"**
+
+   - Ensure your CSV uses the expected datetime format
+   - Check the date_format setting in settings.ini
+
+4. **Chart not displaying**
+   - Ensure lightweight-charts-python is properly installed
+   - Check if your system can open web browser windows
+
+### Getting Help
+
+1. Run with `--verbose` flag for detailed logging
+2. Check the console output for specific error messages
+3. Verify your CSV file format matches the expected structure
+4. Ensure all required dependencies are installed
+
+## License
+
+This project is provided as-is for educational and personal use.
+
+## Contributing
+
+This is a standalone application. For modifications:
+
+1. Follow the existing code structure and patterns
+2. Add appropriate logging and error handling
+3. Update documentation as needed
+4. Test with various CSV formats and exchange codes
