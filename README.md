@@ -12,6 +12,7 @@ https://www.dukascopy.com/trading-tools/widgets/quotes/historical_data_feed
 - Filter data to show only the latest trading day or multiple trading days
 - Apply exchange-specific trading hours filtering using official exchange calendars
 - Display interactive candlestick charts using lightweight-charts-python
+- **Technical indicators with EMA (Exponential Moving Average) overlays**
 - **Export filtered data to JSON format for external use**
 - Support for multiple stock exchanges worldwide
 - Configurable chart appearance and logging
@@ -24,6 +25,7 @@ https://www.dukascopy.com/trading-tools/widgets/quotes/historical_data_feed
 - lightweight-charts-python
 - exchange-calendars
 - pytz
+- TA-Lib (for technical indicators)
 
 ## Installation
 
@@ -52,6 +54,7 @@ run.bat input.csv XETR
 - `--input`: Path to the input CSV file containing OHLCV data (required)
 - `--exchange`: Exchange code (e.g., XETR for Xetra, NYSE for New York Stock Exchange) (required)
 - `--days`: Number of latest trading days to display (optional, default: 1)
+- `--indicators`: Technical indicators to display (optional, format: `ema_50|red,ema_200|green`)
 - `--output`: Output JSON file path (optional, if specified, chart will not be displayed)
 - `--config`: Path to configuration file (optional, default: settings.ini)
 - `--verbose`, `-v`: Enable verbose logging (optional)
@@ -137,6 +140,11 @@ plot-stock-charts/
 │   ├── chart/
 │   │   ├── __init__.py
 │   │   └── plotter.py          # Chart creation and display
+│   ├── indicators/
+│   │   ├── __init__.py
+│   │   ├── parser.py           # Parse indicator specifications
+│   │   ├── calculator.py       # TA-Lib indicator calculations
+│   │   └── renderer.py         # Add indicators to charts
 │   ├── output/
 │   │   ├── __init__.py
 │   │   └── json_exporter.py    # JSON export functionality
@@ -166,6 +174,38 @@ python main.py --input stock_data.csv --exchange XETR --days 3
 python main.py --input stock_data.csv --exchange NYSE --verbose
 ```
 
+### Technical Indicators
+
+```bash
+# Chart with EMA indicators
+python main.py --input stock_data.csv --exchange XETR --indicators ema_50|red,ema_200|green
+
+# Multi-day chart with indicators
+python main.py --input stock_data.csv --exchange XETR --days 3 --indicators ema_50|#FF0000,ema_200|blue
+
+# Indicators with custom colors (hex codes)
+python main.py --input stock_data.csv --exchange XETR --indicators ema_50|#FF6B35,ema_200|#004E89
+```
+
+#### Supported Indicators
+
+- **EMA (Exponential Moving Average)**: `ema_[period]` (e.g., `ema_50`, `ema_200`)
+
+#### Color Options
+
+- **Named Colors**: `red`, `green`, `blue`, `yellow`, `orange`, `purple`, `cyan`, `magenta`, `black`, `white`, `gray`
+- **Hex Colors**: Any valid hex color code (e.g., `#FF0000`, `#00FF00`, `#0000FF`)
+
+#### Indicator Format
+
+The `--indicators` parameter uses the format: `indicator_period|color,indicator_period|color`
+
+Examples:
+
+- `ema_50|red` - 50-period EMA in red
+- `ema_200|#00FF00` - 200-period EMA in green (hex)
+- `ema_50|red,ema_200|green` - Both indicators with different colors
+
 ### Export to JSON
 
 ```bash
@@ -174,6 +214,9 @@ python main.py --input stock_data.csv --exchange XETR --output chart.json
 
 # Export multi-day data to JSON
 python main.py --input stock_data.csv --exchange XETR --days 3 --output chart.json
+
+# Export with indicators included
+python main.py --input stock_data.csv --exchange XETR --indicators ema_50|red,ema_200|green --output chart.json
 
 # Export with verbose logging
 python main.py --input stock_data.csv --exchange NYSE --days 3 --output data.json --verbose

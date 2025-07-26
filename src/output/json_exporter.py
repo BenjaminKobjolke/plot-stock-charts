@@ -42,7 +42,8 @@ class JSONExporter:
                       output_path: str,
                       exchange_code: str = "",
                       days: int = 1,
-                      metadata: Optional[Dict[str, Any]] = None) -> None:
+                      metadata: Optional[Dict[str, Any]] = None,
+                      indicators_data: Optional[List[Dict[str, Optional[float]]]] = None) -> None:
         """
         Export stock dataset to JSON file.
         
@@ -57,7 +58,7 @@ class JSONExporter:
             raise ValueError("Dataset is empty, cannot export to JSON")
         
         # Prepare the JSON structure
-        json_data = self._create_json_structure(dataset, exchange_code, days, metadata)
+        json_data = self._create_json_structure(dataset, exchange_code, days, metadata, indicators_data)
         
         # Write to file
         output_file = Path(output_path)
@@ -75,7 +76,8 @@ class JSONExporter:
     def _create_json_structure(self, dataset: StockDataset, 
                               exchange_code: str,
                               days: int,
-                              metadata: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+                              metadata: Optional[Dict[str, Any]] = None,
+                              indicators_data: Optional[List[Dict[str, Optional[float]]]] = None) -> Dict[str, Any]:
         """
         Create the JSON data structure.
         
@@ -112,17 +114,24 @@ class JSONExporter:
         
         # Convert data points to JSON format
         data_points = []
-        for point in dataset.data:
+        for i, point in enumerate(dataset.data):
             # Remove timezone info from timestamp for cleaner JSON output
             naive_timestamp = point.timestamp.replace(tzinfo=None) if point.timestamp.tzinfo else point.timestamp
-            data_points.append({
+            
+            data_point = {
                 "timestamp": naive_timestamp.isoformat(),
                 "open": point.open,
                 "high": point.high,
                 "low": point.low,
                 "close": point.close,
                 "volume": point.volume
-            })
+            }
+            
+            # Add indicators data if available
+            if indicators_data and i < len(indicators_data):
+                data_point["indicators"] = indicators_data[i]
+            
+            data_points.append(data_point)
         
         # Create the complete JSON structure
         json_structure = {

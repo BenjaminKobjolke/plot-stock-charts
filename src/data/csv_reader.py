@@ -190,3 +190,18 @@ class CSVReader:
         result_dataset = StockDataset(all_days_data)
         self.logger.info(f"Extracted {len(result_dataset)} total data points for {len(trading_days)} trading days")
         return result_dataset
+    
+    def load_all_data(self, file_path: str) -> StockDataset:
+        """
+        Load all data from CSV file without any filtering.
+        
+        This is an alias for load_csv() method, used for indicator calculations
+        that need the complete historical dataset.
+        
+        Args:
+            file_path: Path to the CSV file
+            
+        Returns:
+            StockDataset containing all data from the CSV file
+        """
+        return self.load_csv(file_path)

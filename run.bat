@@ -26,7 +26,7 @@ echo Input file: %1
 echo Exchange: %2
 echo.
 
-call python main.py --input %1 --exchange %2 --days 1
+call python main.py --input %1 --exchange %2 --days 1  --indicators "ema_50|red,ema_200|#00FF00"
 
 if %ERRORLEVEL% NEQ 0 (
     echo.
