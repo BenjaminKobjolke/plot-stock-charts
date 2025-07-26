@@ -22,6 +22,8 @@ from src.output.json_exporter import JSONExporter
 from src.indicators.parser import IndicatorParser
 from src.indicators.calculator import IndicatorCalculator
 from src.indicators.renderer import IndicatorRenderer
+from src.lines.parser import LineParser
+from src.lines.renderer import LineRenderer
 from src.utils.date_utils import format_date_for_display, DateTimeHelper
 
 
@@ -115,6 +117,11 @@ Use exchange_calendars library documentation for full list.
     parser.add_argument(
         '--indicators',
         help='Technical indicators to display (format: ema_50|red,ema_200|green)'
+    )
+    
+    parser.add_argument(
+        '--lines',
+        help='Horizontal lines to display (format: label|value|color|width)'
     )
     
     parser.add_argument(
@@ -373,6 +380,24 @@ def main() -> None:
                 valid_count = sum(1 for _, val in filtered_points if val is not None)
                 logger.info(f"Filtered {indicator_name}: {valid_count} valid points for display")
         
+        # Process horizontal lines if specified
+        lines_data = []
+        if args.lines:
+            try:
+                logger.info(f"Processing horizontal lines: {args.lines}")
+                
+                # Parse horizontal lines
+                line_parser = LineParser()
+                lines_data = line_parser.parse_lines(args.lines)
+                
+                logger.info(f"Successfully parsed {len(lines_data)} horizontal lines")
+                
+            except Exception as e:
+                logger.error(f"Failed to process horizontal lines: {e}")
+                if args.verbose:
+                    logger.exception("Horizontal lines processing error details:")
+                sys.exit(1)
+        
         # Check if JSON output is requested
         if args.output:
             # Export to JSON instead of displaying chart
@@ -391,6 +416,13 @@ def main() -> None:
             # Add indicators metadata if available
             if indicators_metadata:
                 metadata["indicators"] = indicators_metadata
+            
+            # Add lines as key-value pairs if available
+            if lines_data:
+                lines_keyvalues = {}
+                for label, value, color, width in lines_data:
+                    lines_keyvalues[label] = value
+                metadata["lines"] = lines_keyvalues
             
             # Prepare indicators data for JSON export
             indicators_for_json = []
@@ -435,6 +467,21 @@ def main() -> None:
                     logger.info("Indicators added successfully")
                 else:
                     logger.warning("Chart does not support indicators, displaying without them")
+            
+            # Add horizontal lines to chart if available
+            if lines_data:
+                logger.info("Adding horizontal lines to chart...")
+                line_renderer = LineRenderer()
+                
+                # Validate chart compatibility
+                if line_renderer.validate_chart_compatibility(chart_plotter.chart):
+                    line_renderer.add_horizontal_lines_to_chart(
+                        chart_plotter.chart, 
+                        lines_data
+                    )
+                    logger.info("Horizontal lines added successfully")
+                else:
+                    logger.warning("Chart does not support horizontal lines, displaying without them")
             
             logger.info("Displaying chart... (Close the chart window to exit)")
             chart_plotter.show_chart(block=True)

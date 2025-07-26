@@ -13,6 +13,7 @@ https://www.dukascopy.com/trading-tools/widgets/quotes/historical_data_feed
 - Apply exchange-specific trading hours filtering using official exchange calendars
 - Display interactive candlestick charts using lightweight-charts-python
 - **Technical indicators with EMA (Exponential Moving Average) overlays**
+- **Horizontal lines for support/resistance levels with custom labels**
 - **Export filtered data to JSON format for external use**
 - Support for multiple stock exchanges worldwide
 - Configurable chart appearance and logging
@@ -55,6 +56,7 @@ run.bat input.csv XETR
 - `--exchange`: Exchange code (e.g., XETR for Xetra, NYSE for New York Stock Exchange) (required)
 - `--days`: Number of latest trading days to display (optional, default: 1)
 - `--indicators`: Technical indicators to display (optional, format: `ema_50|red,ema_200|green`)
+- `--lines`: Horizontal lines to display (optional, format: `label|value|color|width`)
 - `--output`: Output JSON file path (optional, if specified, chart will not be displayed)
 - `--config`: Path to configuration file (optional, default: settings.ini)
 - `--verbose`, `-v`: Enable verbose logging (optional)
@@ -145,6 +147,10 @@ plot-stock-charts/
 │   │   ├── parser.py           # Parse indicator specifications
 │   │   ├── calculator.py       # TA-Lib indicator calculations
 │   │   └── renderer.py         # Add indicators to charts
+│   ├── lines/
+│   │   ├── __init__.py
+│   │   ├── parser.py           # Parse horizontal line specifications
+│   │   └── renderer.py         # Add horizontal lines to charts
 │   ├── output/
 │   │   ├── __init__.py
 │   │   └── json_exporter.py    # JSON export functionality
@@ -205,6 +211,54 @@ Examples:
 - `ema_50|red` - 50-period EMA in red
 - `ema_200|#00FF00` - 200-period EMA in green (hex)
 - `ema_50|red,ema_200|green` - Both indicators with different colors
+
+### Horizontal Lines
+
+```bash
+# Basic horizontal lines (random colors assigned)
+python main.py --input stock_data.csv --exchange XETR --lines "Support|28.7,Resistance|29.5"
+
+# Lines with specific colors
+python main.py --input stock_data.csv --exchange XETR --lines "Support|28.7|blue,Resistance|29.5|red"
+
+# Lines with custom widths
+python main.py --input stock_data.csv --exchange XETR --lines "Support|28.7|blue|3,Resistance|29.5|red|1"
+
+# Combined with indicators
+python main.py --input stock_data.csv --exchange XETR --indicators ema_50|red --lines "Support|28.7,Target|29.5"
+
+# Multiple lines with mixed specifications
+python main.py --input stock_data.csv --exchange XETR --lines "Support|28.7|green|5,Resistance|29.5,Target|30.2|red|2"
+```
+
+#### Line Format
+
+The `--lines` parameter uses the format: `label|value|color|width`
+
+- **Required**: label, value
+- **Optional**: color (smart random if missing), width (defaults to 1)
+
+#### Color Options (Same as Indicators)
+
+- **Named Colors**: `red`, `green`, `blue`, `yellow`, `orange`, `purple`, `cyan`, `magenta`, `black`, `white`, `gray`
+- **Hex Colors**: Any valid hex color code (e.g., `#FF0000`, `#00FF00`, `#0000FF`)
+- **Smart Random**: Automatically assigns visually distinct colors when not specified
+
+#### Line Examples
+
+- `"Support|28.7"` - Label "Support" at 28.7, random color, width 1
+- `"Support|28.7|blue"` - Label "Support" at 28.7, blue color, width 1
+- `"Support|28.7|blue|3"` - Label "Support" at 28.7, blue color, width 3
+- `"Support|28.7,Resistance|29.5"` - Multiple lines with random colors
+
+#### Smart Color Assignment
+
+When colors are not specified, the system automatically:
+
+1. **Picks unused colors** from a predefined pool for visual distinction
+2. **Avoids duplicates** when possible
+3. **Falls back to random selection** if all colors are used
+4. **Ensures visual clarity** with a diverse color palette
 
 ### Export to JSON
 
